@@ -71,6 +71,7 @@ set KUNPENG_MYSQL_DB=kunpeng
 
 ```bash
 uvicorn backend.app.main:app --reload
+uvicorn app.main:app --reload
 ```
 
 启动后可访问：

@@ -10,10 +10,8 @@ from sqlalchemy import (
     Enum as SAEnum,
     ForeignKey,
     Integer,
-    JSON,
     String,
     Text,
-    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -176,5 +174,289 @@ class BlessOrder(Base):
     pay_status = Column(String(16), default="unpaid", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     paid_at = Column(DateTime)
+
+
+class Role(Base):
+    __tablename__ = "role"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    name = Column(String(64), unique=True, nullable=False)
+    description = Column(String(255))
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+
+class Permission(Base):
+    __tablename__ = "permission"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    code = Column(String(64), unique=True, nullable=False)
+    name = Column(String(128), nullable=False)
+
+
+class AdminOpLog(Base):
+    __tablename__ = "admin_op_log"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    admin_id = Column(BigInteger, ForeignKey("admin_user.id"), nullable=False)
+    username = Column(String(64), nullable=False)
+    action = Column(String(128), nullable=False)
+    target_type = Column(String(64))
+    target_id = Column(BigInteger)
+    detail = Column(Text)
+    ip = Column(String(64))
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class RechargeOrder(Base):
+    __tablename__ = "recharge_order"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey("user.id"), nullable=False)
+    order_no = Column(String(64), unique=True, nullable=False)
+    amount = Column(DECIMAL(12, 2), nullable=False)
+    status = Column(
+        String(16), nullable=False, default="pending"
+    )  # pending/success/failed/unknown
+    pay_method = Column(String(16), nullable=False)
+    channel_txn_id = Column(String(128))
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+    confirmed_by = Column(BigInteger, ForeignKey("admin_user.id"))
+    confirmed_at = Column(DateTime)
+
+
+class BalanceLog(Base):
+    __tablename__ = "balance_log"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey("user.id"), nullable=False)
+    type = Column(String(32), nullable=False)
+    amount_change = Column(DECIMAL(12, 2), nullable=False)
+    balance_before = Column(DECIMAL(12, 2), nullable=False)
+    balance_after = Column(DECIMAL(12, 2), nullable=False)
+    ref_type = Column(String(64))
+    ref_id = Column(BigInteger)
+    remark = Column(String(255))
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class OfferingCategory(Base):
+    __tablename__ = "offering_category"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    name = Column(String(64), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class Offering(Base):
+    __tablename__ = "offering"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    name = Column(String(64), nullable=False)
+    category_id = Column(BigInteger, ForeignKey("offering_category.id"))
+    icon = Column(String(255))
+    price_coin = Column(Integer, nullable=False)
+    status = Column(String(8), default="on", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+
+class Cemetery(Base):
+    __tablename__ = "cemetery"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    deceased_name = Column(String(64), nullable=False)
+    gender = Column(String(8), nullable=False)
+    birthday = Column(Date)
+    death_day = Column(Date)
+    epitaph = Column(Text)
+    creator_user_id = Column(BigInteger, ForeignKey("user.id"))
+    relation = Column(String(32))
+    avatar_url = Column(String(255))
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class SacrificeOrder(Base):
+    __tablename__ = "sacrifice_order"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    order_no = Column(String(64), unique=True, nullable=False)
+    user_id = Column(BigInteger, ForeignKey("user.id"), nullable=False)
+    cemetery_id = Column(BigInteger, ForeignKey("cemetery.id"))
+    deceased_name = Column(String(64))
+    relation = Column(String(32))
+    offering_id = Column(BigInteger, ForeignKey("offering.id"), nullable=False)
+    offering_name = Column(String(64), nullable=False)
+    offering_category = Column(String(64))
+    price_coin = Column(Integer, nullable=False)
+    quantity = Column(Integer, nullable=False)
+    total_coin = Column(Integer, nullable=False)
+    rmb_amount = Column(DECIMAL(12, 2), nullable=False)
+    rate_at_order = Column(DECIMAL(12, 4), nullable=False)
+    pay_status = Column(String(16), default="unpaid", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    paid_at = Column(DateTime)
+
+
+class SacrificeFeed(Base):
+    __tablename__ = "sacrifice_feed"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey("user.id"))
+    user_mobile = Column(String(20))
+    offering_name = Column(String(64))
+    deceased_name = Column(String(64))
+    relation = Column(String(32))
+    content = Column(Text)
+    sacrifice_time = Column(DateTime, nullable=False)
+    created_by_admin = Column(BigInteger, ForeignKey("admin_user.id"))
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class ArticleCategory(Base):
+    __tablename__ = "article_category"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    name = Column(String(64), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class Article(Base):
+    __tablename__ = "article"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    title = Column(String(255), nullable=False)
+    category_id = Column(BigInteger, ForeignKey("article_category.id"), nullable=False)
+    cover_image = Column(String(255))
+    content_html = Column(Text)
+    status = Column(String(16), default="draft", nullable=False)
+    published_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+
+class TeachVideo(Base):
+    __tablename__ = "teach_video"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    title = Column(String(255), nullable=False)
+    cover_image = Column(String(255))
+    video_url = Column(String(255), nullable=False)
+    status = Column(String(8), default="on", nullable=False)
+    published_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class Courseware(Base):
+    __tablename__ = "courseware"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    title = Column(String(255), nullable=False)
+    cover_image = Column(String(255))
+    file_url = Column(String(255), nullable=False)
+    published_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class One2OneCourse(Base):
+    __tablename__ = "one2one_course"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    title = Column(String(255), nullable=False)
+    image = Column(String(255))
+    description_html = Column(Text)
+    expert_id = Column(BigInteger)
+    published_at = Column(DateTime)
+    status = Column(String(8), default="on", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class LiveEvent(Base):
+    __tablename__ = "live_event"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    title = Column(String(255), nullable=False)
+    live_start = Column(DateTime, nullable=False)
+    live_end = Column(DateTime)
+    live_url = Column(String(255), nullable=False)
+    status = Column(String(16), default="not_started", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+
+class ExchangeRate(Base):
+    __tablename__ = "exchange_rate"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    currency = Column(String(32), nullable=False)
+    rate = Column(DECIMAL(12, 4), nullable=False)
+    effective_from = Column(DateTime)
+    effective_to = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class PayQr(Base):
+    __tablename__ = "pay_qr"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    pay_method = Column(String(16), nullable=False)
+    image_url = Column(String(255), nullable=False)
+    remark = Column(String(255))
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class ExpertContact(Base):
+    __tablename__ = "expert_contact"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    name = Column(String(64), nullable=False)
+    title = Column(String(128))
+    mobile = Column(String(20))
+    wechat = Column(String(64))
+    description = Column(String(255))
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class HomeBanner(Base):
+    __tablename__ = "home_banner"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    image_url = Column(String(255), nullable=False)
+    link_type = Column(String(16), nullable=False)
+    link_target = Column(BigInteger)
+    link_url = Column(String(255))
+    sort_order = Column(Integer, default=0, nullable=False)
+    online = Column(Integer, default=1, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class HomeSection(Base):
+    __tablename__ = "home_section"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    key_name = Column(String(64), nullable=False)
+    title = Column(String(64), nullable=False)
+    sort_order = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class HomeSectionProduct(Base):
+    __tablename__ = "home_section_product"
+
+    section_id = Column(BigInteger, ForeignKey("home_section.id"), primary_key=True)
+    product_id = Column(BigInteger, ForeignKey("product.id"), primary_key=True)
+    sort_order = Column(Integer, default=0, nullable=False)
+
 
 

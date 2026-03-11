@@ -12,7 +12,8 @@ from backend.app.db import models
 from backend.app.db.database import get_db
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 这里使用 pbkdf2_sha256 避免 bcrypt 72 字节限制和底层自检问题
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme_admin = OAuth2PasswordBearer(tokenUrl="/api/admin/login")
 
 settings = get_settings()

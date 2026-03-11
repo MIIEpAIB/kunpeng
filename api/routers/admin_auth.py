@@ -3,11 +3,7 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from backend.app.core.security import (
-    create_access_token,
-    get_password_hash,
-    verify_password,
-)
+from backend.app.core.security import create_access_token, get_password_hash, verify_password
 from backend.app.db import models
 from backend.app.db.database import get_db
 from backend.app.schemas.admin import AdminLoginRequest, AdminLoginResponse
