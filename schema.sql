@@ -278,6 +278,7 @@ CREATE TABLE cemetery (
   death_day      DATE,
   epitaph        TEXT,
   creator_user_id BIGINT,
+  creator_account VARCHAR(64),
   relation       VARCHAR(32),
   avatar_url     VARCHAR(255),
   created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

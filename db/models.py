@@ -207,6 +207,19 @@ class Permission(Base):
     code = Column(String(64), unique=True, nullable=False)
     name = Column(String(128), nullable=False)
 
+class AdminUserRole(Base):
+    __tablename__ = "admin_user_role"
+
+    admin_id = Column(BigInteger, ForeignKey("admin_user.id"), primary_key=True)
+    role_id = Column(BigInteger, ForeignKey("role.id"), primary_key=True)
+
+
+class RolePermission(Base):
+    __tablename__ = "role_permission"
+
+    role_id = Column(BigInteger, ForeignKey("role.id"), primary_key=True)
+    permission_id = Column(BigInteger, ForeignKey("permission.id"), primary_key=True)
+
 
 class AdminOpLog(Base):
     __tablename__ = "admin_op_log"
@@ -290,6 +303,7 @@ class Cemetery(Base):
     death_day = Column(Date)
     epitaph = Column(Text)
     creator_user_id = Column(BigInteger, ForeignKey("user.id"))
+    creator_account = Column(String(64))
     relation = Column(String(32))
     avatar_url = Column(String(255))
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

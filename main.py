@@ -19,6 +19,8 @@ from .api.routers import (
     product_order,
     blessing,
     sacrifice,
+    metaphysics,
+    teaching,
 )
 
 
@@ -30,7 +32,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8088", "http://34.87.47.221:8088"],
+    allow_origins=["http://localhost:8088", "http://34.87.47.221:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,6 +54,8 @@ app.include_router(product.router)
 app.include_router(product_order.router)
 app.include_router(blessing.router)
 app.include_router(sacrifice.router)
+app.include_router(metaphysics.router)
+app.include_router(teaching.router)
 
 # 上传文件静态访问
 _static = os.path.join(os.path.dirname(__file__), "..", "static")
