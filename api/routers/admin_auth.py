@@ -37,8 +37,9 @@ def admin_login(payload: AdminLoginRequest, db: Session = Depends(get_db)):
             status_code=status.HTTP_403_FORBIDDEN, detail="管理员已禁用"
         )
 
+    # sub 按 JWT 规范用 string，避免不同端解码类型不一致导致 401
     token = create_access_token(
-        data={"sub": admin.id}, expires_delta=timedelta(hours=8)
+        data={"sub": str(admin.id)}, expires_delta=timedelta(hours=8)
     )
     # 按 v1 文档返回结构：data.token + data.admin_info
     data = {
