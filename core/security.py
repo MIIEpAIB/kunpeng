@@ -52,8 +52,15 @@ def get_current_admin(
         payload: dict[str, Any] = jwt.decode(
             token, settings.secret_key, algorithms=[settings.algorithm]
         )
-        admin_id: int | None = payload.get("sub")
-        if admin_id is None:
+        sub = payload.get("sub")
+        admin_id: int | None
+        if sub is None:
+            raise credentials_exception
+        if isinstance(sub, int):
+            admin_id = sub
+        elif isinstance(sub, str) and sub.isdigit():
+            admin_id = int(sub)
+        else:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
