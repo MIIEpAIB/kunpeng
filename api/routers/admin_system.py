@@ -10,12 +10,45 @@ from backend.app.schemas.common import APIResponse
 router = APIRouter(prefix="/api/admin", tags=["AdminSystem"])
 
 
-@router.put("/profile/password", response_model=APIResponse[dict])
-def change_admin_password(
+@router.post("/change-password", response_model=APIResponse[dict])
+def change_admin_password_v1(
     body: dict,
     db: Session = Depends(get_db),
     admin: models.AdminUser = Depends(get_current_admin),
 ):
+    """
+    按 v1 文档：
+    URL: /api/admin/change-password
+    Method: POST
+    Body: { old_password, new_password, confirm_password }
+    """
+    old_password = body.get("old_password")
+    new_password = body.get("new_password")
+    confirm_password = body.get("confirm_password")
+    if not old_password or not new_password or not confirm_password:
+        raise HTTPException(
+            status_code=400, detail="old_password, new_password, confirm_password required"
+        )
+    if new_password != confirm_password:
+        raise HTTPException(status_code=400, detail="new_password and confirm_password not match")
+    if not verify_password(old_password, admin.password_hash):
+        raise HTTPException(status_code=400, detail="old_password incorrect")
+    admin.password_hash = get_password_hash(new_password)
+    db.add(admin)
+    db.commit()
+    return APIResponse[dict](code=0, msg="ok", data={})
+
+
+@router.put("/profile/password", response_model=APIResponse[dict])
+def change_admin_password_legacy(
+    body: dict,
+    db: Session = Depends(get_db),
+    admin: models.AdminUser = Depends(get_current_admin),
+):
+    """
+    兼容旧地址：/api/admin/profile/password
+    Body: { old_password, new_password }
+    """
     old_password = body.get("old_password")
     new_password = body.get("new_password")
     if not old_password or not new_password:

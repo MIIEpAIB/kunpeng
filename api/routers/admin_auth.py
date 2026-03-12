@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from backend.app.core.security import create_access_token, get_password_hash, verify_password
 from backend.app.db import models
 from backend.app.db.database import get_db
-from backend.app.schemas.admin import AdminLoginRequest, AdminLoginResponse
+from backend.app.schemas.admin import AdminLoginRequest
 from backend.app.schemas.common import APIResponse
 
 
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/admin", tags=["AdminAuth"])
 
 @router.post(
     "/login",
-    response_model=APIResponse[AdminLoginResponse],
+    response_model=APIResponse[dict],
     summary="管理员登录",
 )
 def admin_login(payload: AdminLoginRequest, db: Session = Depends(get_db)):
@@ -40,10 +40,16 @@ def admin_login(payload: AdminLoginRequest, db: Session = Depends(get_db)):
     token = create_access_token(
         data={"sub": admin.id}, expires_delta=timedelta(hours=8)
     )
-    resp = AdminLoginResponse(
-        token=token, admin_id=admin.id, username=admin.username, roles=[]
-    )
-    return APIResponse[AdminLoginResponse](code=0, msg="ok", data=resp)
+    # 按 v1 文档返回结构：data.token + data.admin_info
+    data = {
+        "token": token,
+        "admin_info": {
+            "id": admin.id,
+            "username": admin.username,
+            "role_name": "超级管理员",  # 目前简化为固定值，后续接入角色表
+        },
+    }
+    return APIResponse[dict](code=0, msg="ok", data=data)
 
 
 @router.post(

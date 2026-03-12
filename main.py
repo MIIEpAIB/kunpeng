@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 # 使用相对导入，兼容本地 (backend.app.main) 和服务器 (app.main) 两种运行方式
 from .api.routers import (
@@ -8,6 +10,15 @@ from .api.routers import (
     admin_users,
     admin_products,
     admin_orders,
+    captcha,
+    dashboard,
+    common,
+    operation,
+    user,
+    product,
+    product_order,
+    blessing,
+    sacrifice,
 )
 
 
@@ -31,6 +42,20 @@ app.include_router(admin_system.router)
 app.include_router(admin_users.router)
 app.include_router(admin_products.router)
 app.include_router(admin_orders.router)
+app.include_router(captcha.router)
+app.include_router(dashboard.router)
+app.include_router(common.router)
+app.include_router(operation.router)
+app.include_router(user.router)
+app.include_router(product.router)
+app.include_router(product_order.router)
+app.include_router(blessing.router)
+app.include_router(sacrifice.router)
+
+# 上传文件静态访问
+_static = os.path.join(os.path.dirname(__file__), "..", "static")
+if os.path.isdir(_static):
+    app.mount("/static", StaticFiles(directory=_static), name="static")
 
 
 @app.get("/health", tags=["System"])

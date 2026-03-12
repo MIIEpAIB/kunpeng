@@ -176,6 +176,18 @@ class BlessOrder(Base):
     paid_at = Column(DateTime)
 
 
+class BlessFeed(Base):
+    __tablename__ = "bless_feed"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    display_name = Column(String(64), nullable=False)
+    bless_item_id = Column(BigInteger, ForeignKey("bless_item.id"))
+    bless_item_name = Column(String(64))
+    content = Column(String(512), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_by_admin = Column(BigInteger, ForeignKey("admin_user.id"))
+
+
 class Role(Base):
     __tablename__ = "role"
 
@@ -412,6 +424,7 @@ class PayQr(Base):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     pay_method = Column(String(16), nullable=False)
     image_url = Column(String(255), nullable=False)
+    status = Column(Integer, default=1, nullable=False)
     remark = Column(String(255))
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -432,6 +445,7 @@ class HomeBanner(Base):
     __tablename__ = "home_banner"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
+    title = Column(String(128))
     image_url = Column(String(255), nullable=False)
     link_type = Column(String(16), nullable=False)
     link_target = Column(BigInteger)
@@ -457,6 +471,18 @@ class HomeSectionProduct(Base):
     section_id = Column(BigInteger, ForeignKey("home_section.id"), primary_key=True)
     product_id = Column(BigInteger, ForeignKey("product.id"), primary_key=True)
     sort_order = Column(Integer, default=0, nullable=False)
+
+
+class ContactConfig(Base):
+    """专家联系方式配置：按类型存账号列表与开关"""
+    __tablename__ = "contact_config"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    contact_type = Column(String(32), unique=True, nullable=False)
+    account_list_json = Column(Text)
+    status = Column(Integer, default=1, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
 
 
