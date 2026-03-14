@@ -540,3 +540,70 @@ def live_delete(
     db.commit()
     return APIResponse[dict](code=0, msg="删除成功", data=None)
 
+
+# -------- 移动端专用（无需管理员登录）--------
+@router.get("/categories", response_model=APIResponse[list])
+def mobile_teaching_categories():
+    """移动端：教学分类"""
+    return APIResponse(code=0, msg="ok", data=[{"category_code": "live", "category_name": "现场直播"}, {"category_code": "replay", "category_name": "教学回播"}, {"category_code": "courseware", "category_name": "课件"}])
+
+
+@router.get("/video/detail", response_model=APIResponse[dict])
+def mobile_teaching_video_detail(video_id: str = Query(...)):
+    """移动端：视频详情"""
+    return APIResponse(code=0, msg="ok", data={"video_id": video_id, "title": "", "video_url": "", "duration": ""})
+
+
+@router.get("/list", response_model=APIResponse[dict])
+def mobile_teaching_list(page_num: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100)):
+    """移动端：教学列表"""
+    return APIResponse(code=0, msg="ok", data={"total": 0, "list": []})
+
+
+@router.get("/live/detail", response_model=APIResponse[dict])
+def mobile_teaching_live_detail(schedule_id: str = Query(...)):
+    """移动端：直播详情"""
+    return APIResponse(code=0, msg="ok", data={"schedule_id": schedule_id, "title": "", "play_url": "", "status": ""})
+
+
+@router.get("/replay/list", response_model=APIResponse[dict])
+def mobile_teaching_replay_list(page_num: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100)):
+    """移动端：回播列表"""
+    return APIResponse(code=0, msg="ok", data={"total": 0, "list": []})
+
+
+@router.get("/material/list", response_model=APIResponse[dict])
+def mobile_teaching_material_list(page_num: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100)):
+    """移动端：课件资料列表"""
+    return APIResponse(code=0, msg="ok", data={"total": 0, "list": []})
+
+
+class One2OneBookBody(BaseModel):
+    course_id: str = ""
+    book_time: str = ""
+    contact: str = ""
+
+
+@router.post("/one2one/book", response_model=APIResponse[dict])
+def mobile_teaching_one2one_book(body: One2OneBookBody):
+    """移动端：预约一对一"""
+    return APIResponse(code=0, msg="ok", data={"order_id": "uuid", "message": "预约成功"})
+
+
+@router.get("/one2one/detail", response_model=APIResponse[dict])
+def mobile_teaching_one2one_detail(course_id: str = Query(None)):
+    """移动端：一对一课程详情"""
+    return APIResponse(code=0, msg="ok", data={"course_id": course_id or "uuid", "title": "", "modules": []})
+
+
+@router.get("/teachers", response_model=APIResponse[dict])
+def mobile_teaching_teachers():
+    """移动端：讲师列表"""
+    return APIResponse(code=0, msg="ok", data={"list": []})
+
+
+@router.get("/teacher/schedule", response_model=APIResponse[dict])
+def mobile_teaching_teacher_schedule(teacher_id: str = Query(...)):
+    """移动端：讲师可预约时段"""
+    return APIResponse(code=0, msg="ok", data={"slots": []})
+
