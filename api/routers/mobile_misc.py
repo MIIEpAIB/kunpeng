@@ -1,8 +1,19 @@
-"""移动端接口 v1：风水、教学、解梦、商城订单、祈福、取名、手机、首页、商品、订单、支付、地区、协议、认证、专家"""
-from fastapi import APIRouter, Query
+"""移动端接口 v1：风水、教学、解梦、商城订单、祈福、取名、手机、首页、商品、订单、支付、地区、协议、认证、专家（解梦/取名/手机/运势接入 DeepSeek）"""
+from datetime import datetime
+from uuid import uuid4
+
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
+from backend.app.core.deepseek import chat as deepseek_chat
 from backend.app.schemas.common import APIResponse
+
+
+def _call_ai(system: str, user: str) -> str:
+    try:
+        return deepseek_chat(system, user)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"AI 服务暂时不可用: {str(e)}")
 
 # 风水
 router_fengshui = APIRouter(prefix="/api/fengshui", tags=["Mobile-Fengshui"])
@@ -41,8 +52,15 @@ class DreamInterpretBody(BaseModel):
 
 @router_dream.post("/interpret", response_model=APIResponse[dict])
 def mobile_dream_interpret(body: DreamInterpretBody):
-    """移动端：解梦"""
-    return APIResponse(code=0, msg="ok", data={"dream_id": "uuid", "interpretation": "", "create_time": ""})
+    """移动端：解梦（DeepSeek）"""
+    sys = "你是解梦师，结合传统文化与常见象征，对用户描述的梦境用中文做简短、正向的解读，仅供娱乐参考。"
+    user = f"关键词：{body.dream_keyword}；梦境描述：{body.dream_content or '未描述'}"
+    text = _call_ai(sys, user)
+    return APIResponse(
+        code=0,
+        msg="ok",
+        data={"dream_id": str(uuid4()), "interpretation": text, "create_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
+    )
 
 
 @router_dream.get("/history/list", response_model=APIResponse[dict])
@@ -140,8 +158,14 @@ class NamingCalculateBody(BaseModel):
 
 @router_naming.post("/calculate", response_model=APIResponse[dict])
 def mobile_naming_calculate(body: NamingCalculateBody):
-    """移动端：取名测算"""
-    return APIResponse(code=0, msg="ok", data={"result_id": "uuid", "names": [], "analysis": ""})
+    """移动端：取名测算（DeepSeek）"""
+    sys = "你是起名顾问，根据姓氏和性别，用中文给出 3～5 个名字建议，并简要说明寓意。名字需文雅、好记、无生僻字。"
+    user = f"姓氏：{body.surname}，性别：{body.gender}"
+    text = _call_ai(sys, user)
+    names = [n.strip() for n in text.replace("、", " ").split() if len(n.strip()) >= 2][:5]
+    if not names:
+        names = ["请查看下方分析"]
+    return APIResponse(code=0, msg="ok", data={"result_id": str(uuid4()), "names": names, "analysis": text})
 
 
 class PhoneCalculateBody(BaseModel):
@@ -150,8 +174,11 @@ class PhoneCalculateBody(BaseModel):
 
 @router_phone.post("/calculate", response_model=APIResponse[dict])
 def mobile_phone_calculate(body: PhoneCalculateBody):
-    """移动端：手机号测算"""
-    return APIResponse(code=0, msg="ok", data={"result_id": "uuid", "analysis": ""})
+    """移动端：手机号测算（DeepSeek）"""
+    sys = "你是数字能量/号码解读顾问，对用户提供的手机号用中文做简短、正向的解读（如数字寓意、易记性等），仅供娱乐参考。"
+    user = f"手机号：{body.phone_number or '未提供'}"
+    text = _call_ai(sys, user)
+    return APIResponse(code=0, msg="ok", data={"result_id": str(uuid4()), "analysis": text})
 
 
 @router_home.get("/init", response_model=APIResponse[dict])
@@ -410,5 +437,12 @@ class FortuneCalculateBody(BaseModel):
 
 @router_fortune.post("/calculate", response_model=APIResponse[dict])
 def mobile_fortune_calculate(body: FortuneCalculateBody):
-    """移动端：运势测算"""
-    return APIResponse(code=0, msg="ok", data={"result_id": "uuid", "summary": "", "details": {}})
+    """移动端：运势测算（DeepSeek）"""
+    sys = "你是运势顾问，根据用户出生日期与问事类型，用中文给出近期运势概要（事业、感情、健康、财运等），语气温和、正向，仅供娱乐参考。"
+    user = f"出生日期：{body.birth_date}，出生时辰：{body.birth_time}，问事类型：{body.purpose_code or '综合'}"
+    text = _call_ai(sys, user)
+    return APIResponse(
+        code=0,
+        msg="ok",
+        data={"result_id": str(uuid4()), "summary": text[:200] if text else "", "details": {"full_analysis": text}},
+    )
